@@ -1,3 +1,4 @@
+
 body {
     /* background-color:gray; */
     background: linear-gradient(rgb(130, 130, 255), rgb(168, 254, 241));
@@ -6,6 +7,7 @@ body {
 .main {
     /* background-color: rgb(235, 255, 226);*/
     background-color: rgb(255, 242, 205); 
+    min-height: 700px;
 }
 
 .my-btn {
@@ -25,6 +27,7 @@ body {
     font-size: 24px;
     font-weight:bold;
 }
+
 
 .card-font {
     /* background-color: rgb(255, 242, 205); */

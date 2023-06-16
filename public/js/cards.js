@@ -15,7 +15,6 @@ function onClickSaved(btn) {
     let link = arr[arr.length-1];
 
     const id = btn.value;
-    console.log('onClickSaved ', id);
 
     let is_saved = false;
     if(btn.name === 'save') {

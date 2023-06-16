@@ -2,12 +2,35 @@ const {most_popular_movies} = require('./most-popular-movies.js');
 
 class User {
     getMostPopularMovies() {
-        console.log('Get most popular movies from IMDb');
         return this._mostPopularMovies;
     }
     setMostPopularMovies(movies) {
         console.log('Set most popular movies from IMDb');
         this._mostPopularMovies = movies;
+    }
+
+    getMostPopularSeries() {
+        return this._mostPopularSeries;
+    }
+    setMostPopularSeries(movies) {
+        console.log('Set most popular series from IMDb');
+        this._mostPopularSeries = movies;
+    }
+
+    getTop250Movies() {
+        return this._top250Movies;
+    }
+    setTop250Movies(movies) {
+        console.log('Set top 250 movies from IMDb');
+        this._top250Movies = movies;
+    }
+
+    getTop250Series() {
+        return this._top250Series;
+    }
+    setTop250Series(movies) {
+        console.log('Set top 250 series from IMDb');
+        this._top250Series = movies;
     }
 
     parserMovies(movies) {
@@ -33,10 +56,23 @@ class User {
     }
 
     getMovieByID(id) {
-        // var allMovies = this._mostPopularMovies.concat(this._mostPopularMovies, this._mostPopularMovies);
-        let movies = this.parserMovies(most_popular_movies);
-        let movie = movies.find(m=> m.id === id);
+        var allMovies = this._mostPopularMovies.concat(this._mostPopularSeries, this._top250Movies, this._top250Series);
+        let movie = allMovies.find(m=> m.id === id);
         return movie;
+    }
+
+    setMovieBoolValByID(id, is_saved, is_favorites) {
+        var allMovies = [];
+        if(this._mostPopularMovies) allMovies = allMovies.concat(this._mostPopularMovies);
+        if(this._mostPopularMovies) allMovies = allMovies.concat(this._mostPopularSeries);
+        if(this._mostPopularMovies) allMovies = allMovies.concat(this._top250Movies);
+        if(this._mostPopularMovies) allMovies = allMovies.concat(this._top250Series);
+
+        if(allMovies.length > 0) {
+            let movie = allMovies.find(m=> m.id === id);
+            movie.is_saved = is_saved;
+            movie.is_favorites = is_favorites;
+        }
     }
     
     convertBuffToBolean(movies) {
@@ -75,4 +111,5 @@ class User {
 }
 
 let user = new User();
-module.exports = {user};
+
+module.exports = user;

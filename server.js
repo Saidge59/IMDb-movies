@@ -4,7 +4,7 @@ var bodyParser = require('body-parser');
 const mysql = require("mysql2");
 require("dotenv").config();
 
-const {user} = require('./public/js/utils/utils.js');
+const user = require('./public/js/utils/utils.js');
 const {most_popular_movies} = require('./public/js/utils/most-popular-movies.js');
 
 const app = express();
@@ -66,71 +66,137 @@ app.get('/test-movies', (req, res) => {
 app.get('/most-popular-movies', (req, res) => {
     const title = 'Most popular movies';
     const url = 'https://imdb-api.com/en/API/MostPopularMovies/k_7qo199gj';
-
-    let movies = user.parserMovies(most_popular_movies);
-    
     const sql = 'SELECT * FROM movies_db';
 
-    pool.query(sql)
-    .then(data => {
-        let films = data[0];
-        if(films.length > 0) {
-            user.convertBuffToBolean(films);
-            user.setBooleanValToList(films, movies);
-        }
-        res.render(createPath('list-movies'), {movies, title});
-    })
-    .catch(e => console.log(e));
+    // let movies = user.parserMovies(most_popular_movies);
+    // const sql = 'SELECT * FROM movies_db';
+    // getAllMoviesDB(res, movies, title, user.setMostPopularMovies);
 
-    // if(user.getMostPopularMovies() === undefined) {
-    //     user.getMoviesFromIMDb(url)
-    //         .then(json => {
-    //             const movies = user.parserImageMovies(json.items);
-    //             user.setMostPopularMovies(movies);
-    //             res.render(createPath('list-movies'), {movies, title});
-    //         })
-    //         .catch(error => console.log(error));
-    // } else {
-    //     const movies = user.getMostPopularMovies();
-    //     res.render(createPath('list-movies'), {movies, title});
-    // }
+    if(user.getMostPopularMovies() === undefined) {
+        user.getMoviesFromIMDb(url)
+            .then(json => {
+                let movies = user.parserMovies(json.items);
+                
+                pool.query(sql)
+                .then(data => {
+                    let films = data[0];
+                    if(films.length > 0) {
+                        user.convertBuffToBolean(films);
+                        user.setBooleanValToList(films, movies);
+                    }
+                    user.setMostPopularMovies(movies);
+                    res.render(createPath('list-movies'), {movies, title});
+                })
+                .catch(e => console.log(e));
+            })
+            .catch(error => console.log(error));
+    } else {
+        const movies = user.getMostPopularMovies();
+        res.render(createPath('list-movies'), {movies, title});
+    }
 })
 
 app.get('/most-popular-series', (req, res) => {
     const title = 'Most popular series';
     const url = 'https://imdb-api.com/en/API/MostPopularTVs/k_7qo199gj';
+    const sql = 'SELECT * FROM movies_db';
 
-    getMoviesFromIMDb(url)
-        .then(json => {
-            const movies = parserImageMovies(json.items);
-            res.render(createPath('list-movies'), {movies, title});
-        })
-        .catch(error => console.log(error))
+    if(user.getMostPopularSeries() === undefined) {
+        user.getMoviesFromIMDb(url)
+            .then(json => {
+                let movies = user.parserMovies(json.items);
+                
+                pool.query(sql)
+                .then(data => {
+                    let films = data[0];
+                    if(films.length > 0) {
+                        user.convertBuffToBolean(films);
+                        user.setBooleanValToList(films, movies);
+                    }
+                    user.setMostPopularSeries(movies);
+                    res.render(createPath('list-movies'), {movies, title});
+                })
+                .catch(e => console.log(e));
+            })
+            .catch(error => console.log(error));
+    } else {
+        const movies = user.getMostPopularSeries();
+        res.render(createPath('list-movies'), {movies, title});
+    }
 })
 
 app.get('/top-250-movies', (req, res) => {
     const title = 'Top 250 movies';
     const url = 'https://imdb-api.com/en/API/Top250Movies/k_7qo199gj';
+    const sql = 'SELECT * FROM movies_db';
 
-    getMoviesFromIMDb(url)
-        .then(json => {
-            const movies = parserImageMovies(json.items);
-            res.render(createPath('list-movies'), {movies, title});
-        })
-        .catch(error => console.log(error))
+    if(user.getTop250Movies() === undefined) {
+        user.getMoviesFromIMDb(url)
+            .then(json => {
+                let movies = user.parserMovies(json.items);
+                
+                pool.query(sql)
+                .then(data => {
+                    let films = data[0];
+                    if(films.length > 0) {
+                        user.convertBuffToBolean(films);
+                        user.setBooleanValToList(films, movies);
+                    }
+                    user.setTop250Movies(movies);
+                    res.render(createPath('list-movies'), {movies, title});
+                })
+                .catch(e => console.log(e));
+            })
+            .catch(error => console.log(error));
+    } else {
+        const movies = user.getTop250Movies();
+        res.render(createPath('list-movies'), {movies, title});
+    }
 })
 
 app.get('/top-250-series', (req, res) => {
     const title = 'Top 250 series';
     const url = 'https://imdb-api.com/en/API/Top250TVs/k_7qo199gj';
+    const sql = 'SELECT * FROM movies_db';
 
-    getMoviesFromIMDb(url)
-        .then(json => {
-            const movies = parserImageMovies(json.items);
-            res.render(createPath('list-movies'), {movies, title});
-        })
-        .catch(error => console.log(error))
+    if(user.getTop250Series() === undefined) {
+        user.getMoviesFromIMDb(url)
+            .then(json => {
+                let movies = user.parserMovies(json.items);
+                
+                pool.query(sql)
+                .then(data => {
+                    let films = data[0];
+                    if(films.length > 0) {
+                        user.convertBuffToBolean(films);
+                        user.setBooleanValToList(films, movies);
+                    }
+                    user.setTop250Series(movies);
+                    res.render(createPath('list-movies'), {movies, title});
+                })
+                .catch(e => console.log(e));
+            })
+            .catch(error => console.log(error));
+    } else {
+        const movies = user.getTop250Series();
+        res.render(createPath('list-movies'), {movies, title});
+    }
 })
+
+// function getAllMoviesDB(res, movies, title, listMovies){
+//     const sql = 'SELECT * FROM movies_db';
+//     pool.query(sql)
+//     .then(data => {
+//         let films = data[0];
+//         if(films.length > 0) {
+//             user.convertBuffToBolean(films);
+//             user.setBooleanValToList(films, movies);
+//             listMovies(movies);
+//         }
+//         res.render(createPath('list-movies'), {movies, title});
+//     })
+//     .catch(e => console.log(e));
+// }
 
 app.get('/saved', (req, res) => {
     const title = 'My saved movies';
@@ -181,16 +247,23 @@ app.post('/changeSaved', jsonParser, function (req, res) {
         let film = m[0][0];
         if(film) {
             user.convertBuffToBoleanMovie(film);
-            if(!film.is_favorites && !is_saved) {
-                pool.query(sqlD, [id]).catch(e => console.log(e));
+            if(!is_saved) {
+                if(!film.is_favorites) {
+                    pool.query(sqlD, [id]).catch(e => console.log(e));
+                } else {
+                    pool.query(sqlU, [is_saved, id]).catch(e => console.log(e));
+                }
+                user.setMovieBoolValByID(id, is_saved, film.is_favorites);
                 res.send('{"status" : "delete"}');
             } else {
                 pool.query(sqlU, [is_saved, id]).catch(e => console.log(e));
+                user.setMovieBoolValByID(id, is_saved, film.is_favorites);
                 res.send('{"status" : "save"}');
             }
         } else {
             let movie = user.getMovieByID(id);
             pool.query(sqlI, [movie.id, movie.crew, movie.rating, movie.image, movie.is_favorites, true, movie.title, movie.year]).catch(e => console.log(e));
+            user.setMovieBoolValByID(id, is_saved, movie.is_favorites);
             res.send('{"status" : "save"}');
         }
     })
@@ -209,16 +282,23 @@ app.post('/changeSaved', jsonParser, function (req, res) {
         let film = m[0][0];
         if(film) {
             user.convertBuffToBoleanMovie(film);
-            if(!film.is_saved && !is_favorites) {
-                pool.query(sqlD, [id]).catch(e => console.log(e));
+            if(!is_favorites) {
+                if(!film.is_saved) {
+                    pool.query(sqlD, [id]).catch(e => console.log(e));
+                } else {
+                    pool.query(sqlU, [is_favorites, id]).catch(e => console.log(e));
+                }
+                user.setMovieBoolValByID(id, film.is_saved, is_favorites);
                 res.send('{"status" : "delete"}');
             } else {
                 pool.query(sqlU, [is_favorites, id]).catch(e => console.log(e));
+                user.setMovieBoolValByID(id, film.is_saved, is_favorites);
                 res.send('{"status" : "save"}');
             }
         } else {
             let movie = user.getMovieByID(id);
             pool.query(sqlI, [movie.id, movie.crew, movie.rating, movie.image, true, movie.is_saved, movie.title, movie.year]).catch(e => console.log(e));
+            user.setMovieBoolValByID(id, movie.is_saved, is_favorites);
             res.send('{"status" : "save"}');
         }
     })
