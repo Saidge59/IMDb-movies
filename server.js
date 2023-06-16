@@ -2,12 +2,16 @@ const express = require('express');
 const path = require('path');
 var bodyParser = require('body-parser');
 const mysql = require("mysql2");
-const {parserImage, convertBuffToBolean, getMoviesFromIMDb} = require('./public/js/utils/utils.js');
+require("dotenv").config();
+
+const {user} = require('./public/js/utils/utils.js');
+const {most_popular_movies} = require('./public/js/utils/most-popular-movies.js');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 
+const PORT = process.env.NODE_DOCKER_PORT || 8080;
 const hostname = 'localhost';
 const port = 3000;
 let movies = [];
@@ -50,22 +54,12 @@ app.get('/test-movies', (req, res) => {
         let movie_db = data[0];
         
         if(movie_db.length > 0) {
-            let movie_db_con = convertBuffToBolean(movie_db);
-            
-            movies.forEach((a, i) => {
-                movie_db_con.forEach(b => {
-                    if(a.id === b.id) {
-                        movies[i].is_saved = b.is_saved;
-                        movies[i].is_favorites = b.is_favorites;
-                    }
-                });
-                
-            });
+            user.convertBuffToBolean(movie_db);
+            user.setBooleanValToList(movie_db, movies);
             res.render(createPath('list-movies'), {movies, title});
         }
     })
     .catch(e => console.log(e));
-
     
 })
 
@@ -73,12 +67,33 @@ app.get('/most-popular-movies', (req, res) => {
     const title = 'Most popular movies';
     const url = 'https://imdb-api.com/en/API/MostPopularMovies/k_7qo199gj';
 
-    getMoviesFromIMDb(url)
-        .then(json => {
-            const movies = parserImage(json.items);
-            res.render(createPath('list-movies'), {movies, title});
-        })
-        .catch(error => console.log(error));
+    let movies = user.parserMovies(most_popular_movies);
+    
+    const sql = 'SELECT * FROM movies_db';
+
+    pool.query(sql)
+    .then(data => {
+        let films = data[0];
+        if(films.length > 0) {
+            user.convertBuffToBolean(films);
+            user.setBooleanValToList(films, movies);
+        }
+        res.render(createPath('list-movies'), {movies, title});
+    })
+    .catch(e => console.log(e));
+
+    // if(user.getMostPopularMovies() === undefined) {
+    //     user.getMoviesFromIMDb(url)
+    //         .then(json => {
+    //             const movies = user.parserImageMovies(json.items);
+    //             user.setMostPopularMovies(movies);
+    //             res.render(createPath('list-movies'), {movies, title});
+    //         })
+    //         .catch(error => console.log(error));
+    // } else {
+    //     const movies = user.getMostPopularMovies();
+    //     res.render(createPath('list-movies'), {movies, title});
+    // }
 })
 
 app.get('/most-popular-series', (req, res) => {
@@ -87,7 +102,7 @@ app.get('/most-popular-series', (req, res) => {
 
     getMoviesFromIMDb(url)
         .then(json => {
-            const movies = parserImage(json.items);
+            const movies = parserImageMovies(json.items);
             res.render(createPath('list-movies'), {movies, title});
         })
         .catch(error => console.log(error))
@@ -99,7 +114,7 @@ app.get('/top-250-movies', (req, res) => {
 
     getMoviesFromIMDb(url)
         .then(json => {
-            const movies = parserImage(json.items);
+            const movies = parserImageMovies(json.items);
             res.render(createPath('list-movies'), {movies, title});
         })
         .catch(error => console.log(error))
@@ -111,7 +126,7 @@ app.get('/top-250-series', (req, res) => {
 
     getMoviesFromIMDb(url)
         .then(json => {
-            const movies = parserImage(json.items);
+            const movies = parserImageMovies(json.items);
             res.render(createPath('list-movies'), {movies, title});
         })
         .catch(error => console.log(error))
@@ -120,10 +135,14 @@ app.get('/top-250-series', (req, res) => {
 app.get('/saved', (req, res) => {
     const title = 'My saved movies';
     const sql = 'SELECT * FROM movies_db';
+
     pool.query(sql)
     .then(data => {
-        let  movies = convertBuffToBolean(data[0]);
-        movies = movies.filter(m => m.is_saved);
+        let movies = data[0];
+        if(movies.length > 0) {
+            user.convertBuffToBolean(movies);
+            movies = movies.filter(m=>m.is_saved);
+        }
         res.render(createPath('list-movies'), {movies, title});
     })
     .catch(e => console.log(e));
@@ -135,61 +154,76 @@ app.get('/favorites', (req, res) => {
 
     pool.query(sql)
     .then(data => {
-        let  movies = convertBuffToBolean(data[0]);
-        movies = movies.filter(m => m.is_favorites);
+        let movies = data[0];
+        if(movies.length > 0) {
+            user.convertBuffToBolean(movies);
+            movies = movies.filter(m=>m.is_favorites);
+        }
         res.render(createPath('list-movies'), {movies, title});
     })
     .catch(e => console.log(e));
 })
 
+
+
 // POST =============================
 var jsonParser = bodyParser.json()
-app.post('/delete', jsonParser, function (req, res) {
-    console.log('delete');
-    // const sql = "DELETE FROM movies_db WHERE id=?";
-    // pool.query(sql, [req.body.id], function(err, data) {
-    //     if(err) return console.log(err);
-    // });
-  });
 
 app.post('/changeSaved', jsonParser, function (req, res) {
-    const movie = req.body;
+    const {id, is_saved} = req.body;
     const sqlU = "UPDATE movies_db SET is_saved=? WHERE id=?";
     const sqlS = 'SELECT * FROM movies_db WHERE id=?';
     const sqlI = 'INSERT INTO movies_db (id, crew, im_db_rating, image, is_favorites, is_saved, title, year) VALUES(?, ?, ?, ?, ?, ?, ?, ?)';
+    const sqlD = 'DELETE FROM movies_db WHERE id=?';
 
-    pool.query(sqlS, [movie.id])
+    pool.query(sqlS, [id])
     .then(m => {
-        if(m[0].length > 0) {
-            pool.query(sqlU, [movie.is_saved, movie.id]).catch(e => console.log(e));
+        let film = m[0][0];
+        if(film) {
+            user.convertBuffToBoleanMovie(film);
+            if(!film.is_favorites && !is_saved) {
+                pool.query(sqlD, [id]).catch(e => console.log(e));
+                res.send('{"status" : "delete"}');
+            } else {
+                pool.query(sqlU, [is_saved, id]).catch(e => console.log(e));
+                res.send('{"status" : "save"}');
+            }
         } else {
-            pool.query(sqlI, [movie.id, movie.crew, movie.rating, movie.image, movie.is_favorites, movie.is_saved, movie.title, movie.year]).catch(e => console.log(e));
+            let movie = user.getMovieByID(id);
+            pool.query(sqlI, [movie.id, movie.crew, movie.rating, movie.image, movie.is_favorites, true, movie.title, movie.year]).catch(e => console.log(e));
+            res.send('{"status" : "save"}');
         }
     })
     .catch(e => console.log(e));
   });
 
   app.post('/changeFavorites', jsonParser, function (req, res) {
-    const {id, favorites} = req.body;
-    const sql = "UPDATE movies_db SET is_favorites=? WHERE id=?";
+    const {id, is_favorites} = req.body;
+    const sqlU = "UPDATE movies_db SET is_favorites=? WHERE id=?";
+    const sqlS = 'SELECT * FROM movies_db WHERE id=?';
+    const sqlI = 'INSERT INTO movies_db (id, crew, im_db_rating, image, is_favorites, is_saved, title, year) VALUES(?, ?, ?, ?, ?, ?, ?, ?)';
+    const sqlD = 'DELETE FROM movies_db WHERE id=?';
 
-    pool.query(sql, [favorites, id], function(err, data) {
-        if(err) return console.log(err);
-        // res.redirect("/");
-    });
+    pool.query(sqlS, [id])
+    .then(m => {
+        let film = m[0][0];
+        if(film) {
+            user.convertBuffToBoleanMovie(film);
+            if(!film.is_saved && !is_favorites) {
+                pool.query(sqlD, [id]).catch(e => console.log(e));
+                res.send('{"status" : "delete"}');
+            } else {
+                pool.query(sqlU, [is_favorites, id]).catch(e => console.log(e));
+                res.send('{"status" : "save"}');
+            }
+        } else {
+            let movie = user.getMovieByID(id);
+            pool.query(sqlI, [movie.id, movie.crew, movie.rating, movie.image, true, movie.is_saved, movie.title, movie.year]).catch(e => console.log(e));
+            res.send('{"status" : "save"}');
+        }
+    })
+    .catch(e => console.log(e));
   });
-
-//   function getMovieById (id) {
-//     const sql = 'SELECT * FROM movies_db WHERE id=?';
-//     let movie = null;
-//     pool.query(sql, id, function(err, data) {
-//         if(err) return console.log(err);
-//         // movie = convertBuffToBolean(data);
-//         movie = data[0];
-//     });
-//     console.log('movie' ,movie);
-//     return movie;
-//   }
   
 app.use((req, res) => {
     res
