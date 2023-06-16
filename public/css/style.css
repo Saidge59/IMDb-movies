@@ -1,7 +1,35 @@
 body {
-    background-color:gray;
+    /* background-color:gray; */
+    background: linear-gradient(rgb(130, 130, 255), rgb(168, 254, 241));
 }
 
 .main {
-    background-color: lemonchiffon;
+    /* background-color: rgb(235, 255, 226);*/
+    background-color: rgb(255, 242, 205); 
+}
+
+.my-btn {
+    margin-top: 5px;
+}
+
+.my-text {
+    font-size: 16px;
+    margin-top: 5px;
+}
+
+.my-title-main {
+    font-weight:bold;
+}
+
+.my-title {
+    font-size: 24px;
+    font-weight:bold;
+}
+
+.card-font {
+    /* background-color: rgb(255, 242, 205); */
+}
+
+.my-card {
+    padding: 15px;
 }
