@@ -25,3 +25,5 @@ Example JSON response: https://imdb-api.com/en/API/Top250Movies/yourApiKey
     "imDbRatingCount": "1119777"
 }
 ```
+It will look something like this...
+![simple](https://github.com/Saidge59/IMDb-movies-nodejs-mysql/assets/30416091/cbd532da-dad7-4739-a1be-d893a1aac6bb)
