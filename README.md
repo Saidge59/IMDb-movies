@@ -25,6 +25,20 @@ Example JSON response: https://imdb-api.com/en/API/Top250Movies/yourApiKey
     "imDbRatingCount": "1119777"
 }
 ```
+You will need to create a database table
+```
+CREATE TABLE movies (
+    id VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    image VARCHAR(255),
+    crew VARCHAR(255),
+    year VARCHAR(255),
+    rating VARCHAR(255),
+    is_saved BOOLEAN,
+    is_favorites BOOLEAN,
+    PRIMARY KEY (id)
+);
+```
 It will look something like this...
 
 ![simple](https://github.com/Saidge59/IMDb-movies-nodejs-mysql/assets/30416091/cbd532da-dad7-4739-a1be-d893a1aac6bb)
