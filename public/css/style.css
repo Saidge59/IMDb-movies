@@ -9,6 +9,9 @@ body {
     background-color: rgb(255, 242, 205); 
     min-height: 700px;
 }
+.preview {
+    font-size: 18px;
+}
 
 .my-btn {
     margin-top: 5px;
@@ -28,11 +31,13 @@ body {
     font-weight:bold;
 }
 
-
-.card-font {
-    /* background-color: rgb(255, 242, 205); */
-}
-
 .my-card {
     padding: 15px;
+}
+
+.my-row {
+    display: flex;
+    font-size: 60px;
+    font-weight:bold;
+    justify-content: center;
 }

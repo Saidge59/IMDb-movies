@@ -1,11 +1,17 @@
 const {most_popular_movies} = require('./most-popular-movies.js');
 
 class User {
+    constructor () {
+        this._mostPopularMovies = [];
+        this._mostPopularSeries = [];
+        this._top250Movies = [];
+        this._top250Series = [];
+    }
+
     getMostPopularMovies() {
         return this._mostPopularMovies;
     }
     setMostPopularMovies(movies) {
-        console.log('Set most popular movies from IMDb');
         this._mostPopularMovies = movies;
     }
 
@@ -13,7 +19,6 @@ class User {
         return this._mostPopularSeries;
     }
     setMostPopularSeries(movies) {
-        console.log('Set most popular series from IMDb');
         this._mostPopularSeries = movies;
     }
 
@@ -21,7 +26,6 @@ class User {
         return this._top250Movies;
     }
     setTop250Movies(movies) {
-        console.log('Set top 250 movies from IMDb');
         this._top250Movies = movies;
     }
 
@@ -29,7 +33,6 @@ class User {
         return this._top250Series;
     }
     setTop250Series(movies) {
-        console.log('Set top 250 series from IMDb');
         this._top250Series = movies;
     }
 
@@ -55,40 +58,32 @@ class User {
         return v1S[0] + '_V1_UX300_CR0,11,300,400_AL_.jpg';
     }
 
+    concatMovies() {
+        return [...this.getMostPopularMovies(),
+             ...this.getMostPopularSeries(), 
+             ...this.getTop250Movies(), 
+             ...this.getTop250Series()];
+    }
+
     getMovieByID(id) {
-        var allMovies = this._mostPopularMovies.concat(this._mostPopularSeries, this._top250Movies, this._top250Series);
-        let movie = allMovies.find(m=> m.id === id);
+        const movies = this.concatMovies();
+
+        let movie;
+        if(movies.length > 0) {
+            movie = movies.find(m=> m.id === id);
+        }
         return movie;
     }
 
     setMovieBoolValByID(id, is_saved, is_favorites) {
-        var allMovies = [];
-        if(this._mostPopularMovies) allMovies = allMovies.concat(this._mostPopularMovies);
-        if(this._mostPopularMovies) allMovies = allMovies.concat(this._mostPopularSeries);
-        if(this._mostPopularMovies) allMovies = allMovies.concat(this._top250Movies);
-        if(this._mostPopularMovies) allMovies = allMovies.concat(this._top250Series);
+        const movies = this.concatMovies();
 
-        if(allMovies.length > 0) {
-            let movie = allMovies.find(m=> m.id === id);
+        if(movies.length > 0) {
+            let movie = movies.find(m=> m.id === id);
             movie.is_saved = is_saved;
             movie.is_favorites = is_favorites;
+            console.log('setMovieBoolValByID',movie );
         }
-    }
-    
-    convertBuffToBolean(movies) {
-        movies.forEach((movie, index) => {
-            const favorites = Buffer.from(movie.is_favorites);
-            movies[index].is_favorites = Boolean(favorites.readInt8());
-            const saved = Buffer.from(movie.is_saved);
-            movies[index].is_saved = Boolean(saved.readInt8());
-        });
-    }
-
-    convertBuffToBoleanMovie(movie) {
-        const favorites = Buffer.from(movie.is_favorites);
-        movie.is_favorites = Boolean(favorites.readInt8());
-        const saved = Buffer.from(movie.is_saved);
-        movie.is_saved = Boolean(saved.readInt8());
     }
 
     setBooleanValToList (fromList, toList) {
@@ -105,7 +100,7 @@ class User {
     async getMoviesFromIMDb (url) {
         const res = await fetch(url);
         const json = await res.json();
-        return json;
+        return this.parserMovies(json.items);
     }
 
 }
